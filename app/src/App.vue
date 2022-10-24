@@ -1,31 +1,35 @@
 <script setup lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import HelloWorld from './components/HelloWorld.vue'
+import NewsPaper from './components/NewsPaper.vue'
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="container">
+    <div class="header">
+
+    </div>
+    <div class="news-papers">
+      <suspense>
+        <NewsPaper news-paper-name="VG" url="https://www.vg.no/"
+                   target-image="https://www.vg.no/vgc/frimand/gfx/icons/pluss.svg?x=2"
+                   targetCSS="type-icon pluss-icon"/>
+      </suspense>
+      <suspense>
+        <NewsPaper news-paper-name="Amta" url="https://www.amta.no/"
+                   target-image=""
+                   targetCSS='data-adppaywall="true"'/>
+      </suspense>
+      <suspense>
+        <NewsPaper news-paper-name="Avisa Oslo" url="https://www.ao.no/"
+                   target-image=""
+                   targetCSS='data-adppaywall="true"'/>
+      </suspense>
+    </div>
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+<style>
+.news-papers {
+  display: flex;
+  justify-content: space-evenly;
 }
 </style>

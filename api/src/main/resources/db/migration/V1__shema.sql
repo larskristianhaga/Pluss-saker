@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS genre;
+
+CREATE TABLE genre (
+    id   BIGINT NOT NULL AUTO_INCREMENT UNIQUE PRIMARY KEY,
+   newsPaperName  VARCHAR(255) NOT NULL
+   numberOfPlusArticles  VARCHAR(255) NOT NULL
+   numberOfArticles  VARCHAR(255) NOT NULL
+   syncedDate  DATE NOT NULL
+);
