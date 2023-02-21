@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @ConfigurationProperties("newspapers")
-public class Newspapers {
+public class NewspapersConfig {
 
     List<Elements> syncs;
 
