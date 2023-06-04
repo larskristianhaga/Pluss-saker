@@ -1,20 +1,23 @@
 package no.haga;
 
-import io.micronaut.context.annotation.ConfigurationProperties;
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 @ConfigurationProperties("newspapers")
+@Data
 public class NewspapersConfig {
 
-    List<Elements> syncs;
+    private List<Elements> syncs;
 
     @Data
-    static class Elements {
-        String name;
-        String url;
-        String plussSelector;
-        String articleSelector;
+    public static class Elements {
+        private String name;
+        private String url;
+        private String plusSelector;
+        private String articleSelector;
     }
 }

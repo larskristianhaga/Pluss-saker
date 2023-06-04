@@ -1,31 +1,15 @@
-micronaut:
-  application:
-    name: plussSaker
-  router:
-    static-resources:
-      swagger:
-        paths: classpath:META-INF/swagger
-        mapping: /swagger/**
-      swagger-ui:
-        paths: classpath:META-INF/swagger/views/swagger-ui
-        mapping: /swagger-ui/**
-netty:
-  default:
-    allocator:
-      max-order: 3
-
 newspapers:
-  cronSchedule: "*/10 * * * * *"
+  cronSchedule: "0 0 * * * *"
   syncs:
-    #- name: "VG"
-    #  url: "https://www.vg.no/"
-    #  pluss-selector: "type-icon pluss-icon"
-    #  article-selector: "<article"
-    #- name: "Avisa Oslo"
-    #  url: "https://www.ao.no/"
-    #  pluss-selector: data-adppaywall="true"
-    #  article-selector: "<article"
+    - name: "VG"
+      url: "https://www.vg.no/"
+      plusSelector: "type-icon pluss-icon"
+      articleSelector: "<article"
+    - name: "Avisa Oslo"
+      url: "https://www.ao.no/"
+      plusSelector: data-adppaywall="true"
+      articleSelector: "<article"
     - name: "Amta"
       url: "https://www.amta.no/"
-      pluss-selector: data-adppaywall="true"
-      article-selector: "<article"
+      plusSelector: data-adppaywall="true"
+      articleSelector: "<article"

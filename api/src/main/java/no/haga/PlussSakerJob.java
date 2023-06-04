@@ -1,35 +1,46 @@
 package no.haga;
 
-import io.micronaut.scheduling.annotation.Scheduled;
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import com.googlecode.objectify.ObjectifyService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
-@Singleton
+import static com.googlecode.objectify.ObjectifyService.ofy;
+
+@Component
 public class PlussSakerJob {
 
     private static final Logger LOG = LoggerFactory.getLogger(PlussSakerJob.class);
 
-    @Inject
+    static {
+        // Initialize Objectify, and the database connection to Google Cloud Datastore.
+        ObjectifyService.init();
+        ObjectifyService.register(PlussSaker.class);
+    }
+
+    @Autowired
     NewspapersConfig config;
 
     @Scheduled(cron = "${newspapers.cronSchedule}")
-    public void executeEveryTen() {
+    public void executeCronJob() {
+
+        LOG.info("Cron job started");
 
         // Iterate over the list of newspaper to check for pluss articles.
-        config.syncs.forEach(element -> {
+        config.getSyncs().forEach(element -> {
             // Create a new HTTP request with the URL from the config.
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(element.url))
+                    .uri(URI.create(element.getUrl()))
                     .GET()
                     .build();
 
@@ -40,25 +51,62 @@ public class PlussSakerJob {
                         .build()
                         .send(request, HttpResponse.BodyHandlers.ofString());
             } catch (Exception e) {
+                LOG.error("Error while sending request to " + element.getUrl(), e);
                 throw new RuntimeException(e);
             }
 
-            var occurrencesPluss = countOccurrences(response.body(), element.plussSelector);
-            var occurrencesArticles = countOccurrences(response.body(), element.articleSelector);
+            // Count the number of occurrences of the plus and article selectors.
+            var occurrencesPluss = countOccurrences(response.body(), element.getPlusSelector());
+            LOG.info("Counted: " + occurrencesPluss + " number of plus articles, for newspaper: " + element.getName());
+            var occurrencesArticles = countOccurrences(response.body(), element.getArticleSelector());
+            LOG.info("Counted: " + occurrencesArticles + " number of total articles, for newspaper: " + element.getName());
 
-            var check = new PlussSakerDAO.Checks(new Date(), occurrencesPluss, occurrencesArticles);
-            var checksList = new ArrayList<PlussSakerDAO.Checks>();
-            checksList.add(check);
+            var check = new PlussSaker.Checks(new Date(), occurrencesPluss, occurrencesArticles);
 
-            var retVal = new PlussSakerDAO(element.getName(), element.getUrl(), checksList);
+            // Get the data from the database, based on the name of the newspaper.
+            var savedData = getNewspaperDataFromDatastore(element.getName());
 
-            LOG.info(String.valueOf(occurrencesPluss));
-            LOG.info(String.valueOf(occurrencesArticles));
+            // If savedData has a value, it's not the first sync, and we can add the new check to the list of checks.
+            if (savedData != null && savedData.getChecks() != null) {
+                // Add the new check to the list of checks.
+                savedData.getChecks().add(check);
+            } else { // If savedData is null, then create a new PlussSaker object.
+                // Create a new PlussSaker object.
+                savedData = new PlussSaker(element.getName(), element.getUrl(), List.of(check));
+            }
+
+            // Persist the data to the database.
+            persistDataToDatastore(savedData);
         });
     }
 
-    // Gets the number of occurrences of the element in a given string.
-    private int countOccurrences(String element, String searchTerm) {
+    /**
+     * Persists the data to the database.
+     *
+     * @param data The data to persist.
+     */
+    private void persistDataToDatastore(PlussSaker data) {
+        ObjectifyService.run(() -> ofy().save().entity(data).now());
+    }
+
+    /**
+     * Gets the data from the database, based on the name of the newspaper.
+     *
+     * @param newsPaperName The name of the newspaper.
+     * @return The data from the database, based on the name of the newspaper.
+     */
+    private PlussSaker getNewspaperDataFromDatastore(String newsPaperName) {
+        return ObjectifyService.run(() -> ofy().load().type(PlussSaker.class).id(newsPaperName).now());
+    }
+
+    /**
+     * Gets the number of occurrences of the element in a given string.
+     *
+     * @param element    The string to search in.
+     * @param searchTerm The string to search for.
+     * @return The number of occurrences of the element in a given string.
+     */
+    public static int countOccurrences(String element, String searchTerm) {
         return StringUtils.countMatches(element, searchTerm);
     }
 }

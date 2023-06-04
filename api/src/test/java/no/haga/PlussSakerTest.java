@@ -1,21 +1,17 @@
 package no.haga;
 
-import io.micronaut.runtime.EmbeddedApplication;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Assertions;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@MicronautTest
+@SpringBootTest
 class PlussSakerTest {
 
-    @Inject
-    EmbeddedApplication<?> application;
-
     @Test
-    void testItWorks() {
-        Assertions.assertTrue(application.isRunning());
+    void contextLoads(ApplicationContext context) {
+        assertThat(context).isNotNull();
     }
 
 }
